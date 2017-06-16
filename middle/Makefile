@@ -6,7 +6,6 @@ LIB_OBJS = middle.o
 
 $(LIB_TARG): $(LIB_OBJS)
 	$(AR) $(ARPARAM) $@ $(LIB_OBJS)
-	ranlib $@
 
 .c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c $<
