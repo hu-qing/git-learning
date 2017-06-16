@@ -9,8 +9,6 @@
 #include <unistd.h>
 #include <getopt.h>
 
-handler_map_t g_hp[];
-
 int main(int argc, char *argv[])
 {
 	if (argc != 3) {

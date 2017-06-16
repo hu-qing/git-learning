@@ -15,6 +15,7 @@
 
 
 extern handler_map_t g_hp[];
+
 extern int  g_send_trans_no;
 extern char g_data_date[16];
 

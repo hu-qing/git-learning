@@ -5,7 +5,7 @@ LIB_TARG = libmiddle.a
 LIB_OBJS = middle.o
 
 $(LIB_TARG): $(LIB_OBJS)
-	$(AR) $(ARPARAM) $@ $<
+	$(AR) $(ARPARAM) $@ $(LIB_OBJS)
 	ranlib $@
 
 .c.o:
