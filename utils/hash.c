@@ -53,30 +53,66 @@ static int __table_size_for(int cap) {
     return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
 }
 
+static void __list_destroy(hash_item_t *l)
+{
+    hash_item_t *p1, *p2;
+    p1 = l;
+    while (p1) {
+        free(p1->key);
+        free(p1->val);
+
+        p2 = p1->next;
+        free(p1);
+        p1 = p2; 
+    }
+}
+
+static void __buckets_destroy(hash_item_t **b, int thr)
+{
+	int i;
+
+    for (i = 0; i < thr; ++i) {
+        if (b[i] != NULL) 
+            __list_destroy(b[i]);
+    }
+}
+
+hash_item_t *__find(void *key, hash_item_t *head, int (*match)(const void *a, const void *b))
+{
+    hash_item_t *p = head;
+    while (p) {
+        if (match(key, p->key))
+            return p;
+        p = p->next;
+    }
+    return NULL;
+}
+
 static void __resize(hash_t *h)
 {
-    
+    if (h->threshold >= MAXIMUM_CAPACITY)
+        return;
+
+    int new_threshold = h->threshold << 1;
+
+    hash_item_t **new_buckets = (hash_item_t **)calloc(new_threshold, sizeof(hash_item_t *));
+
+
 }
 
 hash_t *hash_init(int key_type, int val_type)
 {
-	return hash_init_with_cap_and_fact(key_type, val_type, DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
+	return hash_init_with_cap(key_type, val_type, DEFAULT_INITIAL_CAPACITY);
 }
 
-hash_t *hash_init_with_cap(int key_type, int val_type, int capacity)
+hash_t *hash_init_with_cap(int key_type, int val_type, size_t capacity)
 {
-	return hash_init_with_cap_and_fact(key_type, val_type, capacity, DEFAULT_LOAD_FACTOR);
-}
-
-hash_t *hash_init_with_cap_and_fact(int key_type, int val_type, int capacity, float load_factor)
-{
-	if (capacity < 0 || load_factor <= 0)
+	if (capacity < 0)
 		return NULL;
 	
 	hash_t *h = NULL;
     if ((h = calloc(1, sizeof(hash_t))) == NULL)
         return NULL;
-    
 
     switch (key_type) {
     case L:
@@ -113,36 +149,11 @@ hash_t *hash_init_with_cap_and_fact(int key_type, int val_type, int capacity, fl
     h->key_type = key_type;
     h->val_type = val_type;
     h->init_capacity = capacity > MAXIMUM_CAPACITY ? MAXIMUM_CAPACITY : capacity;
-	h->threshold = __table_size_for(capacity);
-	h->load_factor = load_factor;
+	h->threshold = __table_size_for(h->init_capacity);
     h->size = 0;
 	h->buckets = (hash_item_t **)calloc(h->threshold, sizeof(hash_item_t *));
 
 	return h;
-}
-
-static void __list_destroy(hash_item_t *l)
-{
-    hash_item_t *p1, *p2;
-    p1 = l;
-    while (p1) {
-        free(p1->key);
-        free(p1->val);
-
-        p2 = p1->next;
-        free(p1);
-        p1 = p2; 
-    }
-}
-
-static void __buckets_destroy(hash_item_t **b, int thr)
-{
-	int i;
-
-    for (i = 0; i < thr; ++i) {
-        if (b[i] != NULL) 
-            __list_destroy(b[i]);
-    }
 }
 
 void hash_destroy(hash_t *h)
@@ -152,17 +163,6 @@ void hash_destroy(hash_t *h)
     free(h->buckets);
 
     free(h);
-}
-
-hash_item_t *__find(void *key, hash_item_t *head, int (*match)(const void *a, const void *b))
-{
-    hash_item_t *p = head;
-    while (p) {
-        if (!match(key, p->key))
-            return p;
-        p = p->next;
-    }
-    return NULL;
 }
 
 void *__calloc_for(int type, void *k)
@@ -196,10 +196,15 @@ void *__calloc_for(int type, void *k)
     return NULL;
 }
 
+unsigned int __hash(unsigned int hash)
+{
+    return hash ^ (hash >> 16);
+}
+
 int  hash_put(hash_t *h, void *key, void *val)
 {
-    unsigned int hash = h->hash(key);
-    int pos = hash & (h->threshold - 1);
+    unsigned int hash = key == NULL ? 0 : __hash(h->hash(key));
+    unsigned int pos = hash & (h->threshold - 1);
 
     if (__find(key, h->buckets[pos], h->match) != NULL)
         return -1;
@@ -229,7 +234,10 @@ int hash_get(hash_t *h, void *key, void **val)
     unsigned int hash = h->hash(key);
     int pos = hash & (h->threshold - 1);
 
-    *val = __find(key, h->buckets[pos], h->match);
+    hash_item_t *hi = __find(key, h->buckets[pos], h->match);
+    if (hi == NULL)
+        return -1;
+    *val = hi->val;
 
     return 0;
 }
