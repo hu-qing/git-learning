@@ -6,12 +6,15 @@
 #define DEFAULT_INITIAL_CAPACITY (1 << 4)
 #define MAXIMUM_CAPACITY         (1 << 30)
 
+#define DEBUG
+#include <stdio.h>
+
 typedef struct hash_item_s {
     void               *key;
     void               *val;
 	unsigned int       hash;
     struct hash_item_s *next;
-} hash_item_t;
+} hash_pair_t;
 
 typedef struct hash_s {
     int     key_type;
@@ -21,7 +24,7 @@ typedef struct hash_s {
 	size_t  size;
 	int     (*match)(const void *a, const void *b);
 	unsigned int  (*hash)(const void *s);
-	hash_item_t   **buckets;
+	hash_pair_t   **buckets;
 } hash_t;
 
 enum item_type{LL, INT, L, DOUBLE, STR, POINTER};
