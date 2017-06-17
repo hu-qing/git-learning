@@ -37,6 +37,8 @@ int login_req_handler(shield_head *h)
 	ret = __auth_check(login_req->user_name, login_req->password);
 	if (ret);
 
+    // TODO:
+
 	CALLOC_MSG(login_rsp, h->fd, LOGIN_RSP);
 
 	__package_head(&login_rsp->msg_head);
