@@ -67,14 +67,16 @@ static void __list_destroy(hash_item_t *l)
     }
 }
 
-static void __buckets_destroy(hash_item_t **b, int thr)
+static void __buckets_destroy(hash_item_t **b, size_t thr)
 {
-	int i;
+	size_t i;
 
     for (i = 0; i < thr; ++i) {
         if (b[i] != NULL) 
             __list_destroy(b[i]);
     }
+
+    free(b);
 }
 
 hash_item_t *__find(void *key, hash_item_t *head, int (*match)(const void *a, const void *b))
@@ -93,11 +95,54 @@ static void __resize(hash_t *h)
     if (h->threshold >= MAXIMUM_CAPACITY)
         return;
 
-    int new_threshold = h->threshold << 1;
+    size_t old_threshold = h->threshold;
+    size_t new_threshold = h->threshold << 1;
 
     hash_item_t **new_buckets = (hash_item_t **)calloc(new_threshold, sizeof(hash_item_t *));
 
+    size_t i;
+    hash_item_t *p;
+    for (i = 0; i < old_threshold; ++i) {
+        if ((p = h->buckets[i]) != NULL) {
 
+            if (p->next == NULL) {
+                new_buckets[p->hash & (new_threshold - 1)] = p;
+            } else {
+                hash_item_t *next;
+                hash_item_t *low_head = NULL, *low_tail = NULL;
+                hash_item_t *high_head = NULL, *high_tail = NULL;
+
+                do {
+                    next = p->next;
+
+                    if ((p->hash & old_threshold) == 0) {
+                        if (low_tail == NULL)
+                            low_head = p;
+                        else
+                            low_tail->next = p;
+                        low_tail = p;
+                    } else {
+                        if (high_tail == NULL) 
+                                high_head = p;
+                        else
+                            high_tail->next = p;
+                        high_tail = p;
+                    }
+                } while ((p = next) != NULL);
+                if (low_tail != NULL) {
+                    low_tail->next = NULL; 
+                    new_buckets[i] = low_head;
+                }
+                if (high_tail != NULL) {
+                    high_tail->next = NULL; 
+                    new_buckets[i] = high_head;
+                }
+            }
+        }
+    }
+    __buckets_destroy(h->buckets, old_threshold);
+    h->buckets = new_buckets;
+    h->threshold = new_threshold;
 }
 
 hash_t *hash_init(int key_type, int val_type)
@@ -159,8 +204,6 @@ hash_t *hash_init_with_cap(int key_type, int val_type, size_t capacity)
 void hash_destroy(hash_t *h)
 {
 	__buckets_destroy(h->buckets, h->threshold);
-
-    free(h->buckets);
 
     free(h);
 }
