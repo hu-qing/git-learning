@@ -38,5 +38,6 @@ int  hash_get(hash_t *h, void *key, void **val);
 void **hash_keys(hash_t *h, size_t *size);
 int  hash_replace(hash_t *h, void *key, void *val);
 size_t  hash_count(hash_t *h);
+void hash_destroy_keys(void **keys);
 
 #endif

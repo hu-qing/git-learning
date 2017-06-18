@@ -301,6 +301,11 @@ void **hash_keys(hash_t *h, size_t *size)
     return ks;
 }
 
+void hash_destroy_keys(void **keys)
+{
+    free(keys);
+}
+
 int hash_get(hash_t *h, void *key, void **val)
 {
     unsigned int hash = key == NULL ? 0 : __hash(h->hash(key));

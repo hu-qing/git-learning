@@ -3,41 +3,40 @@
 #include <stdio.h>
 
 static int __callback(void *a, int argc, char **argv, char **col_name){
-	int i;
-
     array_t *p = (array_t *)a;
     hash_t  *h = hash_init(STR, STR);
     if (h == NULL) {
         return -1;
     }
 
-	for (i = 0; i < argc; i++) {
-		printf("%s = %s\n", col_name[i], argv[i] ? argv[i] : "NULL");
+    int i;
+    for (i = 0; i < argc; i++) {
+        printf("%s = %s\n", col_name[i], argv[i] ? argv[i] : "NULL");
         hash_put(h, col_name[i], argv[i] ? argv[i] : "");
-	}
+    }
     array_insert(p, (void *)h);
-	printf("--\n");
-	return 0;
+    printf("--\n");
+    return 0;
 }
 
 int db_init(const char *filename, sqlite3 **conn)
 {
-	int ret;
-
 	*conn = NULL;
-	ret = sqlite3_open(filename, conn);
-	if (ret) {
-		if (*conn)
-			sqlite3_close(*conn);
-		return -1;
-	}
 
-	return 0;
+    int ret;
+    ret = sqlite3_open(filename, conn);
+    if (ret) {
+        if (*conn)
+            sqlite3_close(*conn);
+        return -1;
+    }
+
+    return 0;
 }
 
 int db_close(sqlite3 *conn)
 {
-	return sqlite3_close(conn) == SQLITE_OK ? 0 : -1;
+    return sqlite3_close(conn) == SQLITE_OK ? 0 : -1;
 }
 
 int db_exec_dql(sqlite3 *conn, const char *sql, char **err_msg, array_t *a)
