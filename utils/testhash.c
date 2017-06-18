@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
     /* Integer test */
-    // begin
+    /* // begin
     hash_t *h = hash_init(LL, LL);
 
     long long key = 5;
@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
 
     long long *gval = NULL;
     int ret;
+    */
+    /*
     for (i = 0; i < 1000; ++i) {
         key = i;
         ret = hash_get(h, &key, (void **)&gval);
@@ -31,13 +33,33 @@ int main(int argc, char *argv[])
             printf("key[%lld]--val[%lld]\n", key, *gval);
         gval = NULL;
     }
+    */
 
+    /* // test hash_keys
+    size_t size = 0;
+    void **keys = hash_keys(h, &size);
+    if (keys == NULL) {
+        printf("get keys error.\n"); 
+        return -1;
+    }
+    for (i = 0; i < size; ++i) {
+        ret = hash_get(h, keys[i], (void **)&gval);
+        if (ret != 0)
+            printf("Not found val from hash of key[%lld] error.\n", *(long long *)keys[i]);
+        else
+            printf("key[%lld]--val[%lld]\n", *(long long *)keys[i], *gval);
+        gval = NULL;
+    }
+    */ // end
+
+    /*
     hash_destroy(h);
+    */
 
     // end
 
     /* String test */
-    /* // begin
+    // begin
     char s[53] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     hash_t *h = hash_init_with_cap(STR, STR, 900);
@@ -75,7 +97,7 @@ int main(int argc, char *argv[])
     }
 
     hash_destroy(h);
-    */ // end
+    // end
 
     return 0;
 }

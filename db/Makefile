@@ -2,7 +2,6 @@ OBJS = tables_init.o
 CC = gcc
 LFLAGS = -Wall -g
 LIBS = -L./libs -lsqlite3
-INCLUDE = -I./include
 EXE = tables_init
 
 

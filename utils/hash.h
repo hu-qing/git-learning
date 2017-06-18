@@ -9,11 +9,11 @@
 #define DEBUG
 #include <stdio.h>
 
-typedef struct hash_item_s {
+typedef struct hash_pair_s {
     void               *key;
     void               *val;
 	unsigned int       hash;
-    struct hash_item_s *next;
+    struct hash_pair_s *next;
 } hash_pair_t;
 
 typedef struct hash_s {
@@ -34,7 +34,9 @@ hash_t *hash_init_with_cap(int key_type, int val_type, size_t capacity);
 
 void hash_destroy(hash_t *h);
 int  hash_put(hash_t *h, void *key, void *val);
-int  hash_replace(hash_t *h, void *key, void *val);
 int  hash_get(hash_t *h, void *key, void **val);
+void **hash_keys(hash_t *h, size_t *size);
+int  hash_replace(hash_t *h, void *key, void *val);
+size_t  hash_count(hash_t *h);
 
 #endif

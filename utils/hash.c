@@ -1,5 +1,4 @@
 #include "hash.h"
-#include <stdlib.h>
 #include <string.h>
 
 static int __int_match(const void *a, const void *b)
@@ -9,7 +8,7 @@ static int __int_match(const void *a, const void *b)
 
 static int __str_match(const void *a, const void *b)
 {
-    return strcmp((const char *)a, (const char *)b);
+    return !strcmp((const char *)a, (const char *)b);
 }
 
 static unsigned int __str_hash(const void *key)
@@ -53,16 +52,20 @@ static int __table_size_for(int cap) {
     return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
 }
 
+void __hash_pair_destroy(hash_pair_t *p)
+{
+    free(p->key);
+    free(p->val);
+    free(p);
+}
+
 static void __list_destroy(hash_pair_t *l)
 {
     hash_pair_t *p1, *p2;
     p1 = l;
     while (p1) {
-        free(p1->key);
-        free(p1->val);
-
         p2 = p1->next;
-        free(p1);
+        __hash_pair_destroy(p1);
         p1 = p2; 
     }
 }
@@ -83,7 +86,7 @@ hash_pair_t *__find(void *key, hash_pair_t *head, int (*match)(const void *a, co
 {
     hash_pair_t *p = head;
     while (p) {
-        if (!match(key, p->key))
+        if (match(key, p->key))
             return p;
         p = p->next;
     }
@@ -257,16 +260,16 @@ int  hash_put(hash_t *h, void *key, void *val)
     if (__find(key, h->buckets[pos], h->match) != NULL)
         return -1;
 
-    hash_pair_t *hi = calloc(1, sizeof(hash_pair_t));
+    hash_pair_t *hp = calloc(1, sizeof(hash_pair_t));
     void *newkey = __calloc_for(h->key_type, key);
     void *newval = __calloc_for(h->val_type, val);
-    hi->key = newkey;
-    hi->val = newval;
-	hi->hash = hash;
-    hi->next = h->buckets[pos];
-    h->buckets[pos] = hi;
+    hp->key = newkey;
+    hp->val = newval;
+	hp->hash = hash;
+    hp->next = h->buckets[pos];
+    h->buckets[pos] = hp;
 
-    if (++(h->size) > h->threshold)
+    if (++h->size > h->threshold)
         __resize(h);
 
     return 0;
@@ -275,6 +278,27 @@ int  hash_put(hash_t *h, void *key, void *val)
 int hash_replace(hash_t *h, void *key, void *val)
 {
     return 0;
+}
+
+void **hash_keys(hash_t *h, size_t *size)
+{
+    *size = h->size;
+    void **ks = (void **)calloc(*size, sizeof(void *));
+    if (ks == NULL) {
+        *size = 0;
+        return NULL; 
+    }
+
+    int i, j = 0;
+    hash_pair_t *p = NULL;
+    for (i = 0; i < h->threshold; ++i) {
+         p = h->buckets[i];
+         while (p) {
+             ks[j++] = p->key;
+             p = p->next;
+         }
+    }
+    return ks;
 }
 
 int hash_get(hash_t *h, void *key, void **val)
@@ -293,4 +317,9 @@ int hash_get(hash_t *h, void *key, void **val)
     *val = hi->val;
 
     return 0;
+}
+
+size_t hash_count(hash_t *h)
+{
+    return h->size;
 }
