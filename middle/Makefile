@@ -1,17 +1,15 @@
-ROOTPATH = /home/userx/SHIELD
-
-INCLUDEPATH = $(ROOTPATH)
+include ../Makefile.bas
 
 LIB_TARG = libmiddle.a
 
 LIB_OBJS = middle.o
 
 $(LIB_TARG): $(LIB_OBJS)
-	ar -ruc $@ $(LIB_OBJS)
+	$(AR) $(ARPARAM) $@ $<
 	ranlib $@
 
-$(LIB_OBJS): middle.c
-	gcc -g -Wall -I$(ROOTPATH) -c middle.c
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDE) -c $<
 
 clean:
 	rm -f $(LIB_OBJS) $(LIB_TARG)

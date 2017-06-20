@@ -94,7 +94,6 @@ static void *__manage_routine(void *ctx)
 
 		int counter = 5;
 		shield_head *h = NULL;
-		int ret;
         while (counter--) {
 			h = NULL;
             if (queue_pop(tp->read_out, (void **)&h))
@@ -189,7 +188,7 @@ static void *__read_routine(void *ctx)
 				void *msg = tp->sse_protocol->pro_read(fd, &len);
 				printf("TRACE: [%s][%d] read fd[%d] end ......\n", __FL__, fd);
                 if (msg != NULL) { // good msg, put it
-					printf("TRACE: [%s][%d] read msg[%s] from fd length[%ld].\n", __FL__, msg, len);
+					printf("TRACE: [%s][%d] read msg[%s] from fd length[%ld].\n", __FL__, (char *)msg, len);
 					shield_head *h = calloc(1, sizeof(shield_head) + len);
 					h->magic_num = MAGIC_NUM;
 					h->len = len;

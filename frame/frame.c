@@ -119,6 +119,7 @@ int server_init(char *cfg_file)
 int server_set_core_init(int (*init)(void *p))
 {
 	g_svr->core->init = init;
+	return 0;
 }
 
 int server_start()

@@ -1,6 +1,6 @@
 #include "handler.h"
 #include "frame.h"
-#include "queue.h"
+#include "utils/queue.h"
 #include <stdio.h>
 
 int middle_push_in(shield_head *h)
@@ -66,10 +66,12 @@ int init_middle_handler(middle_handler *middle, int (*fin)(shield_head *), int (
 	middle->handle_out = fout;
 	middle->push_in = middle_push_in;
 	middle->push_out = middle_push_out;
+	return 0;
 }
 
 
 int init_persistent_handler(persistent_handler *persistent, int (*handler)(shield_head *))
 {
 	persistent->handler = handler;
+	return 0;
 }

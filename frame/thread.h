@@ -2,7 +2,7 @@
 #define __THREAD_H__
 
 #include <pthread.h>
-#include "queue.h"
+#include "utils/queue.h"
 #include "protocol.h"
 
 #define READ_ADD_FD 1
