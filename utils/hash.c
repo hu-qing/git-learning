@@ -26,11 +26,13 @@ static unsigned int __str_hash(const char *key)
 	return val;
 }
 
-static unsigned int __int_hash(const int key)
+static unsigned int __int_hash(int capacity, const int key)
 {
-	h = capacity * (key * 0.618 mod/*取小数部分*/ 1);
+	float tmp = key * 0.618;
 
-	// such as: 2000 * (6341 * 0.618 mod 1) = 2000 * (3918.738 mod 1) = 2000 * 0.738 = 1476
+	float decimal = tmp - (int)tmp;
+	
+	return capacity * decimal;
 }
 
 static int __table_size_for(int cap) {

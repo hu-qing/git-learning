@@ -18,4 +18,9 @@ hash_t *hash_init();
 hash_t *hash_init_with_cap(int capacity);
 hash_t *hash_init_with_cap_and_fact(int capacity, float load_factor);
 
+void hash_destroy(hash_t *h);
+int  hash_put(hash_t *h, void *key, void *val);
+int  hash_replace(hash_t *h, void *key, void *val);
+int  hash_get(hash_t *h, void *key, void **val);
+
 #endif
