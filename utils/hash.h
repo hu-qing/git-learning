@@ -6,8 +6,9 @@
 #define DEFAULT_LOAD_FACTOR      0.75
 
 typedef struct hash_item_s {
-    void   *key;
-    void   *val;
+    void               *key;
+    void               *val;
+	unsigned int       hash;
     struct hash_item_s *next;
 } hash_item_t;
 
@@ -18,12 +19,12 @@ typedef struct hash_s {
     int     threshold;
 	float   load_factor;
 	int     size;
-	int     (*match)(void *a, void *b);
+	int     (*match)(const void *a, const void *b);
 	unsigned int  (*hash)(const void *s);
-	hash_item_t   *buckets;
+	hash_item_t   **buckets;
 } hash_t;
 
-typedef enum item_type{LL, INT, L, DOUBLE, STR, POINTER}
+enum item_type{LL, INT, L, DOUBLE, STR, POINTER};
 
 hash_t *hash_init(int key_type, int val_type);
 hash_t *hash_init_with_cap(int key_type, int val_type, int capacity);

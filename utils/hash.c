@@ -22,7 +22,7 @@ static unsigned int __str_hash(const void *key)
 	while (*ptr != '\0') {
 		unsigned int tmp;
 		val = (val << 4) + (*ptr);
-		if (tmp = (val & 0xf0000000)) {
+		if ((tmp = (val & 0xf0000000))) {
 			val = val ^(tmp >> 24);
 			val = val ^ tmp;
 		}
@@ -113,15 +113,15 @@ hash_t *hash_init_with_cap_and_fact(int key_type, int val_type, int capacity, fl
     h->key_type = key_type;
     h->val_type = val_type;
     h->init_capacity = capacity > MAXIMUM_CAPACITY ? MAXIMUM_CAPACITY : capacity;
-	h->threshold = __table_size(capacity);
+	h->threshold = __table_size_for(capacity);
 	h->load_factor = load_factor;
     h->size = 0;
-	h->buckets = calloc(h->threshold, sizeof(hash_item_t *));
+	h->buckets = (hash_item_t **)calloc(h->threshold, sizeof(hash_item_t *));
 
 	return h;
 }
 
-void list_destroy(hash_item_t *l)
+static void __list_destroy(hash_item_t *l)
 {
     hash_item_t *p1, *p2;
     p1 = l;
@@ -135,18 +135,26 @@ void list_destroy(hash_item_t *l)
     }
 }
 
+static void __buckets_destroy(hash_item_t **b, int thr)
+{
+	int i;
+
+    for (i = 0; i < thr; ++i) {
+        if (b[i] != NULL) 
+            __list_destroy(b[i]);
+    }
+}
+
 void hash_destroy(hash_t *h)
 {
-    int i;
-    for (i = 0; i < h->threshold; ++i) {
-        if (h->buckets[i] != NULL) 
-            list_destroy(h->buckets[i]);
-    }
+	__buckets_destroy(h->buckets, h->threshold);
+
     free(h->buckets);
+
     free(h);
 }
 
-hash_item_t *__find(void *key, hash_item_t *head, int (*match)(void *a, void *b))
+hash_item_t *__find(void *key, hash_item_t *head, int (*match)(const void *a, const void *b))
 {
     hash_item_t *p = head;
     while (p) {
@@ -183,7 +191,7 @@ void *__calloc_for(int type, void *k)
         *(double *)r = *(double *)k;
         return r;
     case POINTER:
-        return r;
+        return k;
     }
     return NULL;
 }
@@ -191,7 +199,7 @@ void *__calloc_for(int type, void *k)
 int  hash_put(hash_t *h, void *key, void *val)
 {
     unsigned int hash = h->hash(key);
-    pos = hash & (h->threshold - 1);
+    int pos = hash & (h->threshold - 1);
 
     if (__find(key, h->buckets[pos], h->match) != NULL)
         return -1;
@@ -201,21 +209,27 @@ int  hash_put(hash_t *h, void *key, void *val)
     void *newval = __calloc_for(h->val_type, val);
     hi->key = newkey;
     hi->val = newval;
+	hi->hash = hash;
     hi->next = h->buckets[pos];
     h->buckets[pos] = hi;
 
-    if (++(h->size) > threshold)
+    if (++(h->size) > h->threshold)
         __resize(h);
 
     return 0;
 }
 
-int  hash_replace(hash_t *h, void *key, void *val)
+int hash_replace(hash_t *h, void *key, void *val)
 {
     return 0;
 }
 
-int  hash_get(hash_t *h, void *key, void **val)
+int hash_get(hash_t *h, void *key, void **val)
 {
+    unsigned int hash = h->hash(key);
+    int pos = hash & (h->threshold - 1);
+
+    *val = __find(key, h->buckets[pos], h->match);
+
     return 0;
 }
