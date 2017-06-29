@@ -4,9 +4,9 @@
 #define QUEUE_SIZE (1024 * 1024)
 
 typedef struct queue_t {
-	int head;
-	int tail;
-	void * volatile q[QUEUE_SIZE];
+    int head;
+    int tail;
+    void * volatile q[QUEUE_SIZE];
 } queue;
 
 queue *queue_init();
